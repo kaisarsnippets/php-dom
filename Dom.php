@@ -1,17 +1,15 @@
 <?php
-namespace KC;
-
 // DOM manager
 /**
  * @requires: php-dom
  * */
 Class Dom {
     public $Element = null;
-    
+
     public function __construct($elm = null) {
        $elm && $this->Element = $elm;
     }
-    
+
     // Create Document
     public function setDoc($str = '') {
         !$str && $str =
@@ -23,19 +21,18 @@ Class Dom {
         $elm->documentElement;
         return $this;
     }
-    
+
     // Get Document
     public function getDoc() {
         $elm = $this->Element;
-        $doc = $this->Element;
         property_exists($elm, 'ownerDocument')
         && $elm->ownerDocument &&
         $doc = $elm->ownerDocument;
         return new self($doc);
     }
-    
-    // Add element
-    public function add($tag = 'div'){
+
+    // Add node
+    public function setNode($tag = 'div'){
         $tag = strtolower($tag);
         $doc = $this->getDoc()->Element;
         $elm = $doc->createElement($tag);
@@ -43,16 +40,23 @@ Class Dom {
         $pnt->appendChild($elm);
         return new self($elm);
     }
-    
+
+    // Empty node
+    public function emptyNode() {
+        $elm = $this->Element;
+        $elm->nodeValue = '';
+        return new self($elm);
+    }
+
     // Add attribute
-    public function atr($k, $v){
+    public function setAttr($k, $v){
         $elm = $this->Element;
         $elm->setAttribute($k, $v);
         return $this;
     }
-    
+
     // Add HTML content
-    public function htm($htm = ''){
+    public function setHTML($htm = ''){
         $elm = $this->Element;
         $doc = $this->getDoc()->Element;
         $frg = $doc->createDocumentFragment();
@@ -60,16 +64,31 @@ Class Dom {
         $elm->appendChild($frg);
         return $this;
     }
-    
+
     // Add text content
-    public function txt($txt = ''){
+    public function setText($txt = ''){
         $elm = $this->Element;
         $doc = $this->getDoc()->Element;
         $frg = $doc->createTextNode($txt);
         $elm->appendChild($frg);
         return $this;
     }
-    
+
+    // Get HTML string
+    public function getHTML() {
+        $elm = $this->Element;
+        if ($elm instanceof DOMNode) {
+            $dom = new DOMDocument();
+            $elm = $dom->importNode($elm, true);
+            $dom->appendChild($elm);
+            return $dom->saveHTML();
+        } else {
+            $doc = $this->getDoc();
+            $doc = $doc->Element;
+            return $doc->saveHTML();
+        }
+    }
+
     // Get parent
     public function parent() {
         $elm = $this->Element;
@@ -77,7 +96,7 @@ Class Dom {
         $pnt && $pnt = new self($pnt);
         return $pnt;
     }
-    
+
     // Find elements (XPath)
     public function find($pth = ''){
         $elm = $this->Element;
@@ -85,12 +104,5 @@ Class Dom {
         $doc = $doc->Element;
         $xpt = new DOMXPath($doc);
         return $xpt->query($pth, $elm);
-    }
-    
-    // Get document string
-    public function output() {
-        $doc = $this->getDoc();
-        $doc = $doc->Element;
-        return $doc->saveHTML();
     }
 }
